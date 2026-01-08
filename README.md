@@ -92,14 +92,8 @@ bird-embeddings/
 
 ### Installation
 
-```bash
-# Clone repository
-git clone <repository-url>
-cd bird-embeddings
-
-# Install dependencies
-pip install -r requirements.txt
-```
+1. Clone repository: `git clone <repository-url>`
+2. Install dependencies: `pip install -r requirements.txt`
 
 ### Data Setup
 
@@ -107,13 +101,7 @@ pip install -r requirements.txt
 
 1. Request eBird Basic Dataset (EBD) for **Kerala, India** (region code: `IN-KL`)
 2. Download the sampling event file: `ebd_IN-KL_smp_relSep-2025.txt` (or latest)
-3. Place the file in `data/raw/`:
-
-```bash
-data/
-└── raw/
-    └── ebd_IN-KL_smp_relSep-2025.txt  # Your eBird data file
-```
+3. Place the file in `data/raw/ebd_IN-KL_smp_relSep-2025.txt`
 
 **Note:** The actual data and trained models are NOT included in this repository due to size constraints. You need to generate them following the workflow below.
 
@@ -121,134 +109,44 @@ data/
 
 ## 📋 Complete Workflow
 
-### Step 1: Prepare Your Data
+### Step 1: Train the VAE Model
 
-Load and explore the eBird data:
-
-```python
-from src.data import load_ebird_data, get_ebird_columns
-
-# Check what columns are available
-columns = get_ebird_columns("ebd_IN-KL_smp_relSep-2025.txt")
-print(f"Dataset has {len(columns)} columns")
-
-# Load full dataset (or use nrows=100000 for testing)
-data = load_ebird_data("ebd_IN-KL_smp_relSep-2025.txt")
-print(f"Loaded {len(data)} observations")
-```
-
-### Step 2: Create Species Matrix
-
-Convert observation-level data to checklist-level species matrix:
-
-```python
-from src.data import create_species_matrix
-
-# Create binary species presence-absence matrix
-matrix, species_list = create_species_matrix(
-    data,
-    min_species_observations=30,  # Filter rare species
-    min_checklist_species=5,      # Filter sparse checklists
-    apply_quality_filters=True    # Use complete checklists only
-)
-
-print(f"Matrix shape: {matrix.shape[0]} checklists × {len(species_list)} species")
-```
-
-### Step 3: Train the VAE Model
-
-Train a Variational Autoencoder to learn embeddings:
-
-```python
-from src.models import VariationalAutoencoder
-from src.data import split_train_val, create_dataloaders
-from src.training import train_variational_autoencoder, get_device, set_seed
-
-# Set random seed for reproducibility
-set_seed(42)
-
-# Split data into train/validation
-train_ds, val_ds = split_train_val(matrix, species_list, val_size=0.2)
-
-# Create DataLoaders
-train_loader, val_loader = create_dataloaders(
-    train_ds, val_ds,
-    batch_size=128,
-    num_workers=4
-)
-
-# Create model
-model = VariationalAutoencoder(
-    input_dimension=len(species_list),
-    latent_dimension=16,  # Embedding size
-    hidden_dimension=512
-)
-
-# Train the model
-device = get_device()  # Auto-detect CUDA/MPS/CPU
-history = train_variational_autoencoder(
-    model,
-    train_loader,
-    val_loader,
-    num_epochs=50,
-    learning_rate=1e-3,
-    noise_std=0.1,
-    device=device,
-    checkpoint_dir='checkpoints/my_vae',
-    save_every=10
-)
-```
-
-**Or use the training script:**
-
+**Option A - Use training script (recommended):**
 ```bash
 python scripts/train_new_model.py
 ```
 
-### Step 4: Save Model for Inference
+**Option B - Use training notebook:**
+- Open and run `notebooks/train_vae_kerala.ipynb`
+- Follow the cells to load data, create species matrix, and train model
+- Model will be saved to `models/` directory
 
-Save the trained model in a compatible format:
+**What this does:**
+- Loads eBird data from `data/raw/`
+- Creates species presence-absence matrix
+- Trains VAE model (50 epochs, ~30 min on GPU)
+- Saves trained model for inference
 
-```python
-from src.training import save_model_for_inference
+### Step 2: Extract Embeddings
 
-save_model_for_inference(
-    model=model,
-    filepath='models/vae_kerala.pth',
-    input_dim=len(species_list),
-    latent_dim=16,
-    hidden_dims=[512]
-)
-```
+**Run inference notebook:**
+- Open `test_notebooks/test_inference.ipynb`
+- Load your trained model
+- Extract embeddings from checklists
+- Save embeddings to `data/processed/`
 
-### Step 5: Extract Embeddings
+### Step 3: Use Embeddings for Downstream Tasks
 
-Use the trained model to extract embeddings from checklists:
+**Example projects in `projects/` folder:**
 
-```python
-from src.inference import EmbeddingExtractor
-
-# Load the trained model
-extractor = EmbeddingExtractor('models/vae_kerala.pth', device='cpu')
-
-# Extract embeddings (deterministic mode)
-embeddings = extractor.extract_embeddings(matrix, use_mean=True)
-print(f"Embeddings shape: {embeddings.shape}")  # [num_checklists, 16]
-
-# Save embeddings for downstream tasks
-extractor.save_embeddings(
-    embeddings,
-    'data/processed/kerala_embeddings.npz',
-    checklist_ids=matrix.index.tolist()
-)
-```
-
-### Step 6: Use Embeddings for Downstream Tasks
-
-See example projects in `projects/`:
-
-- **District Prediction** (`projects/district_prediction/`): Predict Kerala district from species composition
-- **Wetland Classification** (`projects/wetland_prediction/`): Identify wetland habitats using embeddings
+- **District Prediction:** `projects/district_prediction/`
+  - Run notebooks 01 → 02 → 03 in order
+  - Predicts Kerala district from embeddings
+  
+- **Wetland Classification:** `projects/wetland_prediction/`
+  - Run preprocessing notebooks (00, 00b)
+  - Then run 01 → 02 for analysis
+  - Classifies wetland vs non-wetland habitats
 
 ---
 
@@ -259,18 +157,16 @@ See example projects in `projects/`:
 Verify everything is working:
 
 ```bash
-# Test inference module
 python scripts/test_extractor_fix.py
-
-# Test data pipeline
-jupyter notebook test_notebooks/test_data_pipeline.ipynb
-
-# Test training
-jupyter notebook test_notebooks/test_training.ipynb
-
-# Test inference
-jupyter notebook test_notebooks/test_inference.ipynb
 ```
+
+### Run Test Notebooks
+
+Test individual components:
+- `test_notebooks/test_data_pipeline.ipynb` - Data loading
+- `test_notebooks/test_training.ipynb` - Training pipeline
+- `test_notebooks/test_inference.ipynb` - Embedding extraction
+- `test_notebooks/test_vae_module.ipynb` - VAE model
 
 ### Check Model Compatibility
 
@@ -379,33 +275,13 @@ All test notebooks are passing:
 
 ### Utility Scripts
 Run from project root:
-```bash
-python scripts/train_new_model.py            # Train new VAE model
-python scripts/check_model_compatibility.py   # Verify model format
-python scripts/test_extractor_fix.py         # Quick inference test
-```
+- `python scripts/train_new_model.py` - Train new VAE model
+- `python scripts/check_model_compatibility.py` - Verify model format
+- `python scripts/test_extractor_fix.py` - Quick inference test
 
 ### Model Compatibility
 
-⚠️ **Important**: Always save models using `save_model_for_inference()` to ensure compatibility with the inference module.
-
-**Correct way:**
-```python
-from src.training import save_model_for_inference
-
-save_model_for_inference(
-    model=vae_model,
-    filepath='models/my_model.pth',
-    input_dim=467,
-    latent_dim=16,
-    hidden_dims=[512]
-)
-```
-
-**Wrong way (will not work with inference module):**
-```python
-torch.save(vae_model, 'model.pth')  # ❌ Don't do this
-```
+⚠️ **Important**: Always save models using `save_model_for_inference()` to ensure compatibility with the inference module. See `src/training/README.md` for details.
 
 ## 📝 Documentation
 
@@ -444,48 +320,27 @@ Request the **eBird Basic Dataset (EBD)** for your region of interest. For Keral
 
 ### Model is too large / running out of memory?
 
-Reduce model size:
-```python
-model = VariationalAutoencoder(
-    input_dimension=len(species_list),
-    latent_dimension=8,      # Reduce from 16
-    hidden_dimension=256     # Reduce from 512
-)
-```
+Options to reduce memory usage:
+- Reduce `latent_dimension` from 16 to 8
+- Reduce `hidden_dimension` from 512 to 256
+- Increase `min_species_observations` to filter more species
+- Use smaller batch size
 
-Or filter data more aggressively:
-```python
-matrix, species = create_species_matrix(
-    data,
-    min_species_observations=100,  # Increase from 30
-    min_checklist_species=10       # Increase from 5
-)
-```
+See module READMEs in `src/` for detailed parameter tuning.
 
 ### How do I choose hyperparameters?
 
 **Start with defaults**, then tune:
-- `latent_dimension`: 8-32 (smaller = more compression, larger = more info retained)
+- `latent_dimension`: 8-32 (smaller = more compression)
 - `hidden_dimension`: 256-512 (larger = more capacity)
 - `noise_std`: 0.05-0.2 (higher = more regularization)
 - `learning_rate`: 1e-4 to 1e-3
 
+See `src/training/README.md` for comprehensive hyperparameter guide.
+
 ### Inference module not loading my model?
 
-Make sure you saved the model correctly:
-```python
-from src.training import save_model_for_inference
-
-save_model_for_inference(
-    model=model,
-    filepath='models/my_model.pth',
-    input_dim=len(species_list),
-    latent_dim=16,
-    hidden_dims=[512]
-)
-```
-
-**Don't use** `torch.save(model, ...)` directly!
+Make sure you saved the model using `save_model_for_inference()` from `src.training`. Don't use `torch.save(model, ...)` directly. See `src/training/README.md` for proper model saving.
 
 ## 📚 References
 
