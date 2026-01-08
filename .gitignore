@@ -1,0 +1,38 @@
+# Old files to ignore
+analysis.ipynb
+main.ipynb
+old.zip
+ebd_IN-KL_smp_relSep-2025/
+ebd_IN-KL_smp_relSep-2025.txt
+*.pkl
+*.pt
+*.npz
+*.pth
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

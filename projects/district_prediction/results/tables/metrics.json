@@ -1,0 +1,28 @@
+{
+  "train_accuracy": 0.9242106074325236,
+  "test_accuracy": 0.6745010403020729,
+  "n_train": 51907,
+  "n_test": 12977,
+  "n_districts": 14,
+  "districts": [
+    "Alappuzha",
+    "Ernakulam",
+    "Idukki",
+    "Kannur",
+    "Kasaragod",
+    "Kollam",
+    "Kottayam",
+    "Kozhikode",
+    "Malappuram",
+    "Palakkad",
+    "Pathanamthitta",
+    "Thiruvananthapuram",
+    "Thrissur",
+    "Wayanad"
+  ],
+  "model_params": {
+    "n_estimators": 200,
+    "max_depth": 20,
+    "min_samples_split": 5
+  }
+}

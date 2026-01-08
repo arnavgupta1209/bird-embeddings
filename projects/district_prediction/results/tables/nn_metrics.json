@@ -1,0 +1,13 @@
+{
+  "model_type": "Neural Network",
+  "architecture": "Feedforward (128-64)",
+  "best_val_acc": 0.4903677758318739,
+  "test_acc": 0.48525634439535603,
+  "n_train": 45444,
+  "n_val": 9707,
+  "n_test": 9733,
+  "n_classes": 14,
+  "n_epochs": 100,
+  "batch_size": 128,
+  "total_params": 16110
+}

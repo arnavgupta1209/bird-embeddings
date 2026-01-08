@@ -1,0 +1,36 @@
+{
+  "model_type": "Random Forest",
+  "n_estimators": 200,
+  "max_depth": 20,
+  "train_samples": 51907,
+  "test_samples": 12977,
+  "n_districts": 14,
+  "train_accuracy": 0.9242106074325236,
+  "test_accuracy": 0.6745010403020729,
+  "embedding_dim": 16,
+  "districts": [
+    "Alappuzha",
+    "Ernakulam",
+    "Idukki",
+    "Kannur",
+    "Kasaragod",
+    "Kollam",
+    "Kottayam",
+    "Kozhikode",
+    "Malappuram",
+    "Palakkad",
+    "Pathanamthitta",
+    "Thiruvananthapuram",
+    "Thrissur",
+    "Wayanad"
+  ],
+  "best_district": "Idukki",
+  "best_f1_score": 0.7595884003741815,
+  "worst_district": "Kasaragod",
+  "worst_f1_score": 0.23841059602649006,
+  "top_3_important_dims": [
+    3,
+    5,
+    12
+  ]
+}
