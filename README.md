@@ -440,19 +440,7 @@ Request the **eBird Basic Dataset (EBD)** for your region of interest. For Keral
 - File format: Sampling event data (TSV)
 - Example: `ebd_IN-KL_smp_relSep-2025.txt`
 
-### How long does training take?
 
-Depends on:
-- **Dataset size**: 10K checklists → ~5 min, 100K checklists → ~30 min
-- **Hardware**: GPU recommended for large datasets
-- **Epochs**: 50 epochs typical, can reduce for testing
-
-### Can I use data from other regions?
-
-Yes! The code works with any eBird region:
-- North America: `US-CA`, `US-TX`, `US-NY`, etc.
-- India: `IN-KA` (Karnataka), `IN-TN` (Tamil Nadu), etc.
-- Global: Request specific countries or states
 
 ### Model is too large / running out of memory?
 
